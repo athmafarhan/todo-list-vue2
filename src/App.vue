@@ -14,7 +14,7 @@
 
 <script lang="ts">
 import Vue from 'vue';
-import ToDoList from "./components/ToDoList.vue";
+import ToDoList from './views/ToDoList.vue';
 
 const App = Vue.extend({
   components: {
