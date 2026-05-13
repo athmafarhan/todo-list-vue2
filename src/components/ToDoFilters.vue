@@ -17,7 +17,7 @@
 import { SORT_OPTIONS } from '@/constants/sort.constant';
 import Vue from 'vue';
 
-export const ToDoFilters = Vue.extend({
+const ToDoFilters = Vue.extend({
   props: {
     searchText: {
       type: String,
