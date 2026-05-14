@@ -1,4 +1,4 @@
-import { LocalStorageService } from '@/services/localStorageService';
+import { LocalStorageService } from '@/services/local-storage.service';
 import { ToDo, ToDoFormCreate } from '@/models/todo/todo.model';
 
 const TODOS_STORAGE_KEY = 'my-todos';

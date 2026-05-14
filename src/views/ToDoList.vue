@@ -1,6 +1,6 @@
 <template>
-  <div>
-    <div style="display: flex; justify-content: space-between; align-items: center;">
+  <div class="todo-list">
+    <div class="todo-list__header">
       <h1>{{ title }}</h1>
       <ToDoFilters :search-text="searchText" :selected-sort="selectedSort" @update:search-text="searchText = $event"
         @update:selected-sort="selectedSort = $event" />
@@ -13,18 +13,13 @@
         <ToDoItem v-for="todo in undoneTodos" :key="todo.id" :todo="todo" :is-editing="editingIndex === todo.id"
           :editing-text="editingIndex === todo.id ? editingText : ''" :is-selected="isTodoSelected(todo.id)"
           @modal-delete="showDeleteConfirm" @toggle-select-todo="toggleSelectToDo" @start-edit="startEdit"
-          @cancel-edit="cancelEdit" @mark-as-done="markAsDone" @mark-as-undone="markAsUndone" @save-edit="saveEdit"
+          @done="markAsDone" @undone="markAsUndone" @cancel-edit="cancelEdit" @save-edit="saveEdit"
           @update:editing-text="editingText = $event" />
       </a-col>
-      <a-col :span="2" style="
-      display: flex;
-      flex-direction: column;
-      gap: 1rem;
-      justify-content: center;
-      align-items: center; margin-top: 1.5rem;">
+      <a-col :span="2" class="todo-list__transfer-buttons">
         <a-button type="default" icon="right" @click="toggleDoneSelectedToDo" />
-        <a-button type="default" icon="left" @click="toggleUndoneSelectedToDo" />
         <a-button type="default" icon="double-right" @click="setAllToDoDone" />
+        <a-button type="default" icon="left" @click="toggleUndoneSelectedToDo" />
         <a-button type="default" icon="double-left" @click="setAllToDoUndone" />
       </a-col>
       <a-col :span="11">
@@ -32,7 +27,7 @@
         <ToDoItem v-for="todo in doneTodos" :key="todo.id" :todo="todo" :is-editing="editingIndex === todo.id"
           :editing-text="editingIndex === todo.id ? editingText : ''" :is-selected="isTodoSelected(todo.id)"
           @modal-delete="showDeleteConfirm" @toggle-select-todo="toggleSelectToDo" @start-edit="startEdit"
-          @mark-as-done="markAsDone" @mark-as-undone="markAsUndone" @cancel-edit="cancelEdit" @save-edit="saveEdit"
+          @done="markAsDone" @undone="markAsUndone" @cancel-edit="cancelEdit" @save-edit="saveEdit"
           @update:editing-text="editingText = $event" />
       </a-col>
     </a-row>
@@ -201,4 +196,20 @@ const ToDoList = Vue.extend({
 });
 export default ToDoList;
 </script>
-<style scoped></style>
+
+<style scoped>
+.todo-list__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.todo-list__transfer-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  justify-content: center;
+  align-items: center;
+  margin-top: 1.5rem;
+}
+</style>

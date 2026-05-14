@@ -4,7 +4,9 @@
       "mcp__codegraph__codegraph_files",
       "Bash(npm run *)",
       "Bash(npx vue-tsc *)",
-      "Bash(grep -E \"\\\\.\\(vue|ts|js\\)$\")"
+      "Bash(grep -E \"\\\\.\\(vue|ts|js\\)$\")",
+      "mcp__github__pull_request_read",
+      "Bash(git mv *)"
     ]
   }
 }

@@ -1,7 +1,7 @@
 <template>
-  <a-form-model ref="ruleForm" :model="form" :rules="rules">
+  <a-form-model ref="ruleForm" :model="form" :rules="rules" class="todo-form">
     <a-form-model-item label="Task" prop="task">
-      <a-input v-model="form.task" @keyup.enter="onSubmit" />
+      <a-input v-model="form.task" class="todo-form__input" @keyup.enter="onSubmit" />
     </a-form-model-item>
   </a-form-model>
 </template>
@@ -57,3 +57,7 @@ export default Vue.extend({
   },
 });
 </script>
+
+<style scoped>
+/* todo-form styles */
+</style>

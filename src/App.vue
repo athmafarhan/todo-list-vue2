@@ -1,12 +1,12 @@
 <template>
   <a-layout>
-    <a-layout-header style="background: #7dbcea; color: #fff;">
+    <a-layout-header class="app__header">
       Hands On Vue 2 + Ant Design Vue
     </a-layout-header>
-    <a-layout-content class="container">
+    <a-layout-content class="app__content">
       <ToDoList title="To Do List App" />
     </a-layout-content>
-    <a-layout-footer>Footer</a-layout-footer>
+    <a-layout-footer class="app__footer">Footer</a-layout-footer>
   </a-layout>
 </template>
 
@@ -23,13 +23,13 @@ export default App
 </script>
 
 <style>
-/* #app {
-  font-family: 'Inter', sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-} */
-
-.container {
-  padding: 1.5rem 1.5rem 1.5rem 1.5rem
+.app__header {
+  background: #7dbcea;
+  color: #fff;
 }
+
+.app__content {
+  padding: 1.5rem 1.5rem 1.5rem 1.5rem;
+}
+
 </style>
