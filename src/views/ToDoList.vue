@@ -1,33 +1,49 @@
 <template>
-  <div>
-    <div style="display: flex; justify-content: space-between; align-items: center;">
+  <div class="todo-list">
+    <div class="todo-list__header">
       <h1>{{ title }}</h1>
-      <ToDoFilters :search-text="searchText" :selected-sort="selectedSort" update:search-text="searchText = $event"
+      <ToDoFilters :search-text="searchText" :selected-sort="selectedSort" @update:search-text="searchText = $event"
         @update:selected-sort="selectedSort = $event" />
     </div>
-    <ToDoForm ref="todoForm" @submit="addTodo" />
+    <ToDoForm @submit="addTodo" v-model="newTask" />
 
-    <ToDoItem v-for="todo in sortedTodos" :key="todo.id" :todo="todo" :is-editing="editingIndex === todo.id"
-      :editing-text="editingIndex === todo.id ? editingText : ''" @delete="removeTodo" @toggle-done="toggleDone"
-      @start-edit="startEdit" @cancel-edit="cancelEdit" @save-edit="saveEdit"
-      @update:editing-text="editingText = $event" />
+    <a-row :gutter="[24, 8]">
+      <a-col :span="11">
+        <h3>Task To Do ({{ undoneTodos.length }})</h3>
+        <ToDoItem v-for="todo in undoneTodos" :key="todo.id" :todo="todo" :is-editing="editingIndex === todo.id"
+          :editing-text="editingIndex === todo.id ? editingText : ''" :is-selected="isTodoSelected(todo.id)"
+          @modal-delete="showDeleteConfirm" @toggle-select-todo="toggleSelectToDo" @start-edit="startEdit"
+          @done="markAsDone" @undone="markAsUndone" @cancel-edit="cancelEdit" @save-edit="saveEdit"
+          @update:editing-text="editingText = $event" />
+      </a-col>
+      <a-col :span="2" class="todo-list__transfer-buttons">
+        <a-button type="default" icon="right" @click="toggleDoneSelectedToDo" />
+        <a-button type="default" icon="double-right" @click="setAllToDoDone" />
+        <a-button type="default" icon="left" @click="toggleUndoneSelectedToDo" />
+        <a-button type="default" icon="double-left" @click="setAllToDoUndone" />
+      </a-col>
+      <a-col :span="11">
+        <h3>Task Done ({{ doneTodos.length }})</h3>
+        <ToDoItem v-for="todo in doneTodos" :key="todo.id" :todo="todo" :is-editing="editingIndex === todo.id"
+          :editing-text="editingIndex === todo.id ? editingText : ''" :is-selected="isTodoSelected(todo.id)"
+          @modal-delete="showDeleteConfirm" @toggle-select-todo="toggleSelectToDo" @start-edit="startEdit"
+          @done="markAsDone" @undone="markAsUndone" @cancel-edit="cancelEdit" @save-edit="saveEdit"
+          @update:editing-text="editingText = $event" />
+      </a-col>
+    </a-row>
   </div>
 </template>
 
 <script lang="ts">
 import ToDoFilters from '@/components/ToDoFilters.vue';
-import ToDoForm, { ToDoFormCreate } from '@/components/ToDoForm.vue';
+import ToDoForm from '@/components/ToDoForm.vue';
 import ToDoItem from '@/components/ToDoItem.vue';
 import { SORT_OPTIONS, Sort } from '@/constants/sort.constant';
+import { ToDo, ToDoFormCreate } from '@/models/todo/todo.model';
 import Vue from 'vue';
+import { mapGetters } from 'vuex';
 
-type ToDo = {
-  id: number;
-  task: string;
-  done: boolean;
-};
-
-export const ToDoList = Vue.extend({
+const ToDoList = Vue.extend({
   components: {
     ToDoItem,
     ToDoForm,
@@ -41,12 +57,12 @@ export const ToDoList = Vue.extend({
   data() {
     return {
       SORT_OPTIONS,
-      todos: [] as ToDo[],
-      searchText: '' as string,
+      searchText: '',
+      newTask: { task: '' },
       selectedSort: SORT_OPTIONS.DATE_ASC.value as Sort,
 
       editingIndex: null as null | number,
-      editingText: '' as string,
+      editingText: '',
 
       labelCol: { span: 6 },
       wrapperCol: { span: 18 },
@@ -54,11 +70,18 @@ export const ToDoList = Vue.extend({
   },
 
   computed: {
+    ...mapGetters('todos', ['todos']),
+    // eslint-disable-next-line no-unused-vars
+    isTodoSelected(): (id: number) => boolean {
+      return this.$store.getters['todos/isTodoSelected'];
+    },
+
     filteredTodos(): ToDo[] {
+      const todos = this.$store.getters['todos/todos'] as ToDo[];
       if (!this.searchText) {
-        return this.todos;
+        return todos;
       }
-      return this.todos.filter(todo =>
+      return todos.filter(todo =>
         todo.task.toLowerCase().includes(this.searchText.toLowerCase())
       );
     },
@@ -81,38 +104,55 @@ export const ToDoList = Vue.extend({
         default:
           return todos;
       }
+    },
+    undoneTodos(): ToDo[] {
+      return this.sortedTodos.filter(todo => !todo.done);
+    },
+    doneTodos(): ToDo[] {
+      return this.sortedTodos.filter(todo => todo.done);
     }
   },
 
   methods: {
-    buildTodo(form: ToDoFormCreate): ToDo {
-      return {
-        id: Date.now(),
-        task: form.task,
-        done: false
-      } as ToDo
-    },
-
     addTodo(task: ToDoFormCreate) {
-      this.todos.push(this.buildTodo(task));
+      this.$store.dispatch('todos/addTodo', task);
     },
 
-    removeTodo(id: number) {
-      const index = this.todos.findIndex(todo => todo.id === id);
-      if (index !== -1) {
-        this.todos.splice(index, 1);
-      }
-    },
-
-    toggleDone(id: number, checked: boolean) {
-      const todo = this.todos.find(t => t.id === id);
+    toggleSelectToDo(id: number) {
+      const todos = this.$store.getters['todos/todos'] as ToDo[];
+      const todo = todos.find(t => t.id === id);
       if (todo) {
-        todo.done = checked;
+        this.$store.dispatch('todos/toggleSelectTodo', todo);
       }
+    },
+
+    toggleDoneSelectedToDo() {
+      this.$store.dispatch('todos/toggleDoneSelected');
+    },
+
+    toggleUndoneSelectedToDo() {
+      this.$store.dispatch('todos/toggleUndoneSelected');
+    },
+
+    setAllToDoDone() {
+      this.$store.dispatch('todos/setAllDone');
+    },
+
+    setAllToDoUndone() {
+      this.$store.dispatch('todos/setAllUndone');
+    },
+
+    markAsDone(id: number) {
+      this.$store.dispatch('todos/markAsDone', id);
+    },
+
+    markAsUndone(id: number) {
+      this.$store.dispatch('todos/markAsUndone', id);
     },
 
     startEdit(id: number) {
-      const todo = this.todos.find(t => t.id === id);
+      const todos = this.$store.getters['todos/todos'] as ToDo[];
+      const todo = todos.find(t => t.id === id);
       if (todo) {
         this.editingIndex = id;
         this.editingText = todo.task;
@@ -120,10 +160,7 @@ export const ToDoList = Vue.extend({
     },
 
     saveEdit(id: number) {
-      const todo = this.todos.find(t => t.id === id);
-      if (todo) {
-        todo.task = this.editingText;
-      }
+      this.$store.dispatch('todos/updateTodo', { id, task: this.editingText });
       this.resetEdit();
     },
 
@@ -136,33 +173,43 @@ export const ToDoList = Vue.extend({
       this.editingText = '';
     },
 
-    getLocalStorage() {
-      const savedTodos = localStorage.getItem('my-todos');
-      if (savedTodos) {
-        this.todos = JSON.parse(savedTodos);
-      }
+    showDeleteConfirm(id: number) {
+      this.$confirm({
+        title: 'Are you sure delete this task?',
+        content: 'The deleted task cannot be recovered!',
+        okText: 'Yes',
+        okType: 'danger',
+        cancelText: 'No',
+        onOk: () => {
+          this.$store.dispatch('todos/removeTodo', id);
+        },
+        onCancel() {
+          console.log('Cancel');
+        },
+      });
     },
-
-    setLocalStorage(newTodos: ToDo[]) {
-      localStorage.setItem('my-todos', JSON.stringify(newTodos));
-    },
-
-    resetForm() {
-      const formRef = this.$refs.todoForm as any;
-      formRef?.resetForm();
-    }
   },
 
   mounted() {
-    this.getLocalStorage();
+    this.$store.dispatch('todos/fetchTodos');
   },
-
-  watch: {
-    todos: {
-      handler: "setLocalStorage",
-      deep: true
-    }
-  }
 });
 export default ToDoList;
 </script>
+
+<style scoped>
+.todo-list__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.todo-list__transfer-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  justify-content: center;
+  align-items: center;
+  margin-top: 1.5rem;
+}
+</style>
